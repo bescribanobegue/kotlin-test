@@ -15,6 +15,8 @@ plugins {
     id("com.google.cloud.tools.jib") version "3.1.4"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
+    id("org.sonarqube") version "4.4.1.3373"
+    jacoco
 }
 
 // WebJars versions are also referenced in src/main/resources/templates/fragments/layout.html for resource URLs
@@ -30,12 +32,24 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
 }
+
+
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.withType<Test>())
+}
+
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://repo.spring.io/snapshot") }
-    maven { url = uri("https://repo.spring.io/milestone") }
+    maven {
+        url = uri("https://jitpack.io")
+        content {
+            includeModule("com.github.KennethWussmann", "mock-fuel")
+        }
+    }
 }
 
 dependencies {
@@ -51,6 +65,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.webjars.npm:bootstrap:$boostrapVersion")
     implementation("org.webjars.npm:font-awesome:$fontAwesomeVersion")
+    implementation(kotlin("stdlib-jdk8"))
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -61,7 +76,6 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    implementation(kotlin("stdlib-jdk8"))
 }
 
 jib {
