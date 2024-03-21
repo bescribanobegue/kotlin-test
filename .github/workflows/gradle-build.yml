@@ -35,20 +35,8 @@ jobs:
         echo "PROJECT_KEY=$(echo "${{ github.repository }}" | sed 's/\//_/g')" >> $GITHUB_ENV
         echo "SONARCLOUD_ORG_KEY=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
     - name: Analyze with SonarCloud
-      uses: sonarsource/sonarcloud-github-action@master
+      run: ./gradlew sonar -Dsonar.projectKey=${{ env.PROJECT_KEY }} -Dsonar.organization=${{ env.SONARCLOUD_ORG_KEY }} -Dsonar.token=${{ ENV.SONAR_TOKEN }} -Dsonar.gradle.skipCompile=true -Dsonar.host.url=https://sonarcloud.io/ -Dsonar.coverage.jacoco.xmlReportPaths="**/jacoco.xml" -Dsonar.qualitygate.wait=true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=${{ env.SONARCLOUD_ORG_KEY }}
-          -Dsonar.projectKey=${{ env.PROJECT_KEY }}
-          -Dsonar.sources=src
-    - name: SonarQube Quality Gate check
-      id: sonarqube-quality-gate-check
-      uses: sonarsource/sonarqube-quality-gate-action@master
-      timeout-minutes: 5
-      env:
         SONAR_HOST_URL: https://sonarcloud.io/
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
